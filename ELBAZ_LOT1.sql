@@ -1,0 +1,91 @@
+REM --> DEBUT DU SCRIPT
+ALTER SESSION SET NLS_DATE_FORMAT='DD/MM/YYYY';
+
+REM --> DEBUT DU SCRIPT
+REM ETAPE 1 : CREATION DES TABLES
+
+REM --> BANQUE
+DROP SEQUENCE SeqBanque ;
+CREATE SEQUENCE SeqBanque ;
+DROP TABLE BANQUE CASCADE CONSTRAINT;
+CREATE TABLE BANQUE (
+IdBanque INTEGER CONSTRAINT PK_IdBanque PRIMARY KEY,
+LibelleBanque VARCHAR(50) CONSTRAINT UNIQUE_LibelleBanque UNIQUE, 
+CPBanque CHAR(5)NOT NULL,
+AdresseBanque VARCHAR(50)NOT NULL,
+VilleBanque VARCHAR(30) NOT NULL
+);
+
+INSERT INTO BANQUE (IdBanque,LibelleBanque,CPBanque,AdresseBanque, VilleBanque) 
+VALUES (SeqBanque.NEXTVAL,'LCL',75019,'54 AVENUE DES ALLOUETTES','PARIS'); 
+
+REM --> AUDITEDECOUVERT
+DROP SEQUENCE SeqAuditdecouvert ;
+CREATE SEQUENCE SeqAuditdecouvert ;
+DROP TABLE AUDITDECOUVERT CASCADE CONSTRAINT;
+CREATE TABLE AUDITDECOUVERT (
+IdAudit INTEGER CONSTRAINT PK_IdAudit PRIMARY KEY,
+LibelleCompte VARCHAR(30) NOT NULL,
+SoldeCompte NUMBER(10,2) DEFAULT 0,
+DecouvertAutorise NUMBER(10,2)NOT NULL CONSTRAINT CK_DecouvertAutorise CHECK(DecouvertAutorise >=0),
+Depassement NUMBER(10,2) NOT NULL CONSTRAINT CK_Depassement CHECK(Depassement >=0),
+IdDerniereOperation INTEGER
+
+);
+INSERT INTO AUDITEDECOUVERT(IdAudit,LibelleCompte,SoldeCompte,DecouvertAutorise,Depassement,IdDerniereOperation)
+VALUES (SeqAuditdecouvert.NEXTVAL,'DH',0,0,0,2);
+
+
+REM --> TYPECOMPTE
+DROP SEQUENCE SeqTypecompte ;
+CREATE SEQUENCE SeqTypecompte ;
+DROP TABLE TYPECOMPTE CASCADE CONSTRAINT;
+CREATE TABLE TYPECOMPTE (
+IdTypeCompte INTEGER CONSTRAINT PK_IdTypeCompte PRIMARY KEY,
+LibelleTypeCompte VARCHAR(30) NOT NULL
+);
+
+INSERT INTO TYPECOMPTE(IdTypeCompte,LibelleTypeCompte) VALUES (1,'NORMAL');
+INSERT INTO TYPECOMPTE(IdTypeCompte,LibelleTypeCompte) VALUES (2,'NORMAL');
+
+
+REM --> COMPTE
+CREATE SEQUENCE SeqCompte ;
+DROP TABLE COMPTE CASCADE CONSTRAINT;
+CREATE TABLE COMPTE (
+IdCompte INTEGER CONSTRAINT PK_IdCompte PRIMARY KEY,
+LibelleCompte VARCHAR(30)CONSTRAINT UNIQUE_LibelleCompte UNIQUE,
+SoldeCompte NUMBER(10,2)NOT NULL,
+DecouvertAutorise NUMBER(10,2)NOT NULL,
+DateOuvertureCompte DATE default sysdate,
+IdBanque INTEGER CONSTRAINT FK_IdBanque REFERENCES BANQUE(IdBanque),
+IdTypeCompte  INTEGER CONSTRAINT FK_IdTypeCompte REFERENCES TYPECOMPTE(IdTypeCompte) 
+
+);
+
+INSERT INTO COMPTE (IdCompte,LibelleCompte,SoldeCompte,DecouvertAutorise,DateOuvertureCompte,IdBanque,IdTypeCompte) 
+VALUES(1,'DH',0,0,'25-03-2020',1,1);
+
+INSERT INTO COMPTE (IdCompte,LibelleCompte,SoldeCompte,DecouvertAutorise,DateOuvertureCompte,IdBanque,IdTypeCompte) 
+VALUES(2,'EE',0,0,'25-03-2020',1,2);
+
+REM --> OPERATION
+DROP SEQUENCE SeqOperation ;
+CREATE SEQUENCE SeqOperation ;
+DROP TABLE OPERATION CASCADE CONSTRAINT;
+CREATE TABLE OPERATION (
+IdOperation INTEGER CONSTRAINT PK_IdOperation PRIMARY KEY,
+DateOperation DATE default sysdate,
+MontantOperation NUMBER(10,2)NOT NULL,
+IdCompte  INTEGER CONSTRAINT FK_IdCompte REFERENCES COMPTE(IdCompte)
+);
+INSERT INTO OPERATION(IdOperation,DateOperation,MontantOperation,IdCompte)VALUES(1,'25-01-2021',20,1);
+
+
+select * from tab;
+select * from BANQUE;
+select * from AUDITEDECOUVERT ;
+select * from TYPECOMPTE ;
+select * from COMPTE;
+select * from OPERATION;
+

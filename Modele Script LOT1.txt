@@ -1,0 +1,45 @@
+-- *****************************************************************************************************************
+-- SCRIPT SQL LOT1 APPLICATION BANCAIRE
+-- NOM Prénom AUTEUR :
+-- Ce modèle de script permet de faciliter sa maintenance et permet de tout regénérer simplement en cas de problème
+-- *****************************************************************************************************************
+
+-- ***************************
+-- Modification de la session
+-- ***************************
+alter session set nls_date_format = 'DD/MM/YYYY';
+
+-- ***************************
+-- Suppression des tables 
+-- ***************************
+
+DROP TABLE BANQUE CASCADE CONSTRAINT PURGE;
+
+-- ajouter les autres DROP TABLE
+
+-- ***************************
+-- Création des séquences
+-- ***************************
+
+DROP SEQUENCE seq_Banque;
+CREATE SEQUENCE seq_Banque START WITH 1 INCREMENT BY 1;
+
+-- faire la même chose pour les autres séquences
+
+-- ***************************
+-- Création des tables
+-- ***************************
+
+-- Mettre ici vos CREATE TABLE (toujours les séparer par un ;)
+
+-- ***********************************
+-- Ajout des contraintes sur les tables
+-- ************************************
+
+-- Mettre ici tous les ALTER TABLE qui ajoutent les contraintes sur vos tables (toujours les séparer par un ;)
+
+-- ***************************
+-- AJOUT DES DONNEES DE TEST
+-- ***************************
+
+-- Mettre ici les INSERT qui ajoutent quelques lignes dans vos tables

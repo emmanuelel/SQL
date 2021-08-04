@@ -1,0 +1,139 @@
+REM *** --> LOT 2
+REM ***--> Mise en place du package « ACTIONSURCOMPTE »
+
+
+CREATE OR REPLACE PACKAGE ACTIONSURCOMPTE IS
+
+     PROCEDURE PAJOUTNOUVOPERATION (p_Idcompte INTEGER, p_Value NUMBER);
+     PROCEDURE PANNULEROPERATION (p_IdOpt INTEGER);
+     PROCEDURE PMAJDECOUVERTAUTORISE(p_Idcompte INTEGER, p_Value NUMBER);
+     PROCEDURE PMAJMONTANTOPERATION(p_IdOperation INTEGER, p_Value NUMBER);
+     PROCEDURE PFAIRETRANSFERTCOMPTE(p_CptOrig INTEGER, p_CptDest INTEGER, p_Value NUMBER);
+     FUNCTION  FBANQUEOPERATION(p_Idopt INTEGER) RETURN VARCHAR ;
+     FUNCTION FSOLDECOMPTE(p_Cpt INTEGER) RETURN NUMBER ;
+	 
+END ACTIONSURCOMPTE;
+/
+
+
+CREATE OR REPLACE PACKAGE BODY ACTIONSURCOMPTE IS
+
+------------------------------
+--REM--> AJOUTNOUVOPERATION
+------------------------------
+
+    PROCEDURE PAJOUTNOUVOPERATION (p_Idcompte INTEGER, p_Value NUMBER)
+
+    IS
+	BEGIN
+
+    INSERT INTO OPERATION (IdOperation,DateOperation,Idcompte,MontantOperation) VALUES (SeqOperation.nextval,SYSDATE,p_Idcompte,p_Value);
+  
+	END PAJOUTNOUVOPERATION;
+
+
+	
+------------------------------
+--REM--> ANNULEROPERATION
+------------------------------
+
+    PROCEDURE PANNULEROPERATION (p_IdOpt INTEGER)
+
+    IS
+    p_Idcompte INTEGER ;
+    p_Montant  NUMBER (10,2);
+	BEGIN
+    SELECT  Idcompte,MontantOperation INTO p_Idcompte , p_Montant FROM OPERATION WHERE IdOperation = p_IdOpt;
+    INSERT INTO OPERATION (IdOperation,DateOperation,Idcompte,MontantOperation) 
+	VALUES (SeqOperation.nextval,SYSDATE,p_Idcompte,-p_Montant);
+  
+	END PANNULEROPERATION;
+
+
+
+------------------------------
+--REM--> MAJDECOUVERTAUTORISE
+------------------------------
+
+     PROCEDURE PMAJDECOUVERTAUTORISE(p_Idcompte INTEGER, p_Value NUMBER)
+     IS
+	 BEGIN
+	 UPDATE COMPTE SET DecouvertAutorise = p_Value WHERE Idcompte = p_Idcompte;
+     END PMAJDECOUVERTAUTORISE;
+
+
+------------------------------
+--REM--> PMAJMONTANTOPERATION
+------------------------------
+     PROCEDURE PMAJMONTANTOPERATION(p_IdOperation INTEGER, p_Value NUMBER)
+     IS
+	 p_Idcompte INTEGER ;
+	 BEGIN 
+	 SELECT  Idcompte INTO p_Idcompte FROM OPERATION WHERE IdOperation = p_IdOperation;
+	 
+	 ACTIONSURCOMPTE.PANNULEROPERATION(p_IdOperation);
+	 ACTIONSURCOMPTE.PAJOUTNOUVOPERATION(p_Idcompte,p_Value);
+     END PMAJMONTANTOPERATION;
+
+------------------------------
+--REM--> PFAIRETRANSFERTCOMPTE
+------------------------------
+
+
+    PROCEDURE PFAIRETRANSFERTCOMPTE(p_CptOrig INTEGER, p_CptDest INTEGER, p_Value NUMBER)
+    IS
+	BEGIN 
+	 ACTIONSURCOMPTE.PAJOUTNOUVOPERATION(p_CptOrig,-p_Value);
+	 ACTIONSURCOMPTE.PAJOUTNOUVOPERATION(p_CptDest,p_Value);
+
+     END PFAIRETRANSFERTCOMPTE;
+
+
+------------------------------
+--REM--> FBANQUEOPERATION
+------------------------------	 
+
+    FUNCTION FBANQUEOPERATION(p_Idopt INTEGER) RETURN VARCHAR
+    IS
+	VLibelleBanque VARCHAR(50);
+	BEGIN
+	SELECT LibelleBanque INTO VLibelleBanque FROM OPERATION,COMPTE,BANQUE 
+	WHERE IdOperation=p_Idopt AND Operation.IdCompte=COMPTE.IdCompte AND COMPTE.IdBanque = BANQUE.IdBANQUE;
+	RETURN VLibelleBanque;
+	END;
+
+------------------------------
+--REM--> FSOLDECOMPTE
+------------------------------
+    FUNCTION FSOLDECOMPTE(p_Cpt INTEGER) RETURN NUMBER 
+    IS
+	VSoldeCompte NUMBER(10,2);
+	BEGIN
+	SELECT SoldeCompte INTO VSoldeCompte FROM COMPTE
+	WHERE IdCompte=p_Cpt ;
+	RETURN VSoldeCompte;
+	END;
+
+END ACTIONSURCOMPTE ;
+/
+
+
+--EXECUTE ACTIONSURCOMPTE.PAJOUTNOUVOPERATION(1,25);
+
+--EXECUTE ACTIONSURCOMPTE.PANNULEROPERATION(1);
+
+--EXECUTE ACTIONSURCOMPTE.PMAJDECOUVERTAUTORISE(1,20);
+
+--EXECUTE ACTIONSURCOMPTE.PMAJMONTANTOPERATION(1,100);
+
+--EXECUTE ACTIONSURCOMPTE.PFAIRETRANSFERTCOMPTE(1,2,10);
+
+--SELECT ACTIONSURCOMPTE.FBANQUEOPERATION(1) FROM DUAL ;
+
+  SELECT ACTIONSURCOMPTE.FSOLDECOMPTE(1) FROM DUAL ;
+
+
+select * from tab;
+
+select * from OPERATION;
+select * from Compte;
